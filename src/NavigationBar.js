@@ -33,3 +33,5 @@ const NavigationBar = ({ accounts, setAccounts }) => {
         </div>
     );
 };
+
+export default NavigationBar;
