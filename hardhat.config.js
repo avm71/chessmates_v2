@@ -1,4 +1,5 @@
 require("@nomiclabs/hardhat-ethers");
+require("@nomiclabs/hardhat-etherscan")
 const dotenv = require('dotenv')
 
 dotenv.config()
