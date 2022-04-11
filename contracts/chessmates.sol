@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Chessmates is ERC721 {
+contract ChessMates is ERC721, Ownable {
     using Counters for Counters.Counter;
     using Strings for uint256;
 
@@ -25,16 +25,15 @@ contract Chessmates is ERC721 {
     address[] public whiteList;
     mapping(address => uint256) public whiteListAddressBalance;
 
-    address payable commissions = payable("INSERT COMMISSIONS ADDRESS HERE")
-
     constructor() ERC721("ChessMates", "CHESS"){
         setHiddenMetadataUri("ipfs://__CID__/hidden.json");
     }
 
     // Verifies mintLimit when minting
     modifier mintLimit(uint256 mintAmt) {
-        require (mintAmt > 0 && mintAmt <= maxMint, "You may mint up to 5 Chessmates at a time");
+        require (mintAmt > 0 && mintAmt <= maxMint, "You may mint up to 5 ChessMates at a time");
         require(tokenID.current() + mintAmt <= supply, "Max Supply exceeded!");
+        _;
     }
 
     //PUBLIC FUNCTIONS
@@ -51,7 +50,7 @@ contract Chessmates is ERC721 {
     function mintNFT(uint256 mintAmt) public payable mintLimit(mintAmt) {
         if (msg.sender != owner()) {
             if (onlyWhitelisted == true) {
-                require(isWhiteListed(msg.sender), "User is not Whitelisted");
+                require(isWhitelisted(msg.sender), "User is not Whitelisted");
                 uint256 userMintCount = whiteListAddressBalance[msg.sender];
                 require(userMintCount + mintAmt <= maxMint, "Mint limit exceeded");
                 mint(msg.sender, mintAmt);
@@ -60,13 +59,10 @@ contract Chessmates is ERC721 {
         require(!hidden, "Contract Paused" );
         require(msg.value >= cost * mintAmt, "Insufficient Funds To complete your Transaction!");
         mint(msg.sender, mintAmt);
-
-        (bool success, ) = payable(commissions).call{value: msg.value * 5/100}("");
-        require(success);
     }
 
     // Shows how many tokens are owned by an Address
-    function OwnedTokens(address owner) public view returns uint256[] memory {
+    function OwnedTokens(address owner) public view returns (uint256[] memory) {
         uint256 ownerTokenCount = balanceOf(owner);
         uint256[] memory ownedTokenIds = new uint256[](ownerTokenCount);
         uint256 currentTokenId = 1;
@@ -104,7 +100,7 @@ contract Chessmates is ERC721 {
 
     // Returns token Uri
     function tokenURI(uint256 token) public view virtual override returns (string memory) {
-        require(_exists(token)), "Query for nonexistent TokenID");
+        require(_exists(token), "Query for nonexistent TokenID");
 
         if (reveal == false) {
             return hiddenMetadataUri;
@@ -148,7 +144,7 @@ contract Chessmates is ERC721 {
 
     // Sets Uri for hidden Metadata
     function setHiddenMetadataUri(string memory hiddenUri) public onlyOwner {
-        hiddenMetaDataUri = hiddenUri;
+        hiddenMetadataUri = hiddenUri;
     }
 
     // Sets new Uri Suffix
